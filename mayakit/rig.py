@@ -1,6 +1,6 @@
 from math import degrees
 from maya import cmds
-from maya import OpenMaya
+import maya.api.OpenMaya as om
 
 __all__ = ['create_joint', 'create_joint_chain']
 

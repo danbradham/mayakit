@@ -3,14 +3,7 @@ import pymel.core as pmc
 from random import shuffle
 from collections import deque
 from functools import partial
-from . import utils
 import sys
-
-
-load = partial(utils.load_plugin, 'reorderCurve')
-unload = partial(utils.unload_plugin, 'reorderCurve')
-reload = partial(utils.reload_plugin, 'reorderCurve')
-is_loaded = partial(utils.is_loaded, 'reorderCurve')
 
 
 def maya_useNewAPI():
