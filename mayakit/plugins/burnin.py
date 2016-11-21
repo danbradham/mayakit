@@ -9,8 +9,11 @@ import maya.api.OpenMaya as om
 import maya.api.OpenMayaAnim as oma
 import maya.api.OpenMayaUI as omui
 import maya.api.OpenMayaRender as omr
+from maya import cmds
 import pymel.core as pm
 
+
+MAYA_VERSION = int(cmds.about(version=True))
 ANIMCONTROL = oma.MAnimControl
 ALIGNMENTS = ('top left', 'top center', 'top right',
               'middle left', 'middle center', 'middle right',
@@ -313,7 +316,7 @@ class burnin(omui.MPxLocatorNode):
 
         textString = typ_attr.create(
             'textString',
-            "tstr",
+            'tstr',
             om.MFnData.kString,
             om.MFnStringData().create()
         )
@@ -401,7 +404,7 @@ class burnin(omui.MPxLocatorNode):
         cls.addAttribute(cls.textArray)
 
         cls.intArray = num_attr.create(
-            "intArray", "iarray", om.MFnNumericData.kLong)
+            'intArray', 'iarray', om.MFnNumericData.kLong)
         num_attr.storable = True
         num_attr.writable = True
         num_attr.connectable = True
@@ -412,7 +415,7 @@ class burnin(omui.MPxLocatorNode):
         cls.addAttribute(cls.intArray)
 
         cls.floatArray = num_attr.create(
-            "floatArray", "farray", om.MFnNumericData.kDouble)
+            'floatArray', 'farray', om.MFnNumericData.kDouble)
         num_attr.storable = True
         num_attr.writable = True
         num_attr.connectable = True
@@ -427,16 +430,15 @@ class burninDrawOverride(omr.MPxDrawOverride):
 
     def __init__(self, obj):
         super(burninDrawOverride, self).__init__(obj, self.draw)
-        print 'burninDrawOverride.__init__'
         self.text_data = None
         self.font_options = None
 
     @classmethod
     def creator(cls, obj):
-        return burninDrawOverride(obj)
+        return cls(obj)
 
-    @classmethod
-    def draw(cls, context, data):
+    @staticmethod
+    def draw(context, data):
         return
 
     def prepareForDraw(self, objPath, camera, frameContext, oldData):
@@ -520,6 +522,9 @@ class burninDrawOverride(omr.MPxDrawOverride):
 
 
 def initializePlugin(obj):
+    if MAYA_VERSION < 2015:
+        raise Exception('burnin only supported in Maya2015 or greater')
+
     plugin = om.MFnPlugin(obj)
 
     try:
@@ -532,7 +537,7 @@ def initializePlugin(obj):
             burnin.type_classification
         )
     except:
-        sys.stderr.write("Failed to register node\n")
+        sys.stderr.write('Failed to register node\n')
         raise
 
     try:
@@ -542,7 +547,7 @@ def initializePlugin(obj):
             burninDrawOverride.creator
         )
     except:
-        sys.stderr.write("Failed to register override\n")
+        sys.stderr.write('Failed to register override\n')
         raise
 
 
@@ -552,7 +557,7 @@ def uninitializePlugin(obj):
     try:
         plugin.deregisterNode(burnin.type_id)
     except:
-        sys.stderr.write("Failed to deregister node\n")
+        sys.stderr.write('Failed to deregister node\n')
         raise
 
     try:
@@ -561,7 +566,7 @@ def uninitializePlugin(obj):
             burnin.type_name
         )
     except:
-        sys.stderr.write("Failed to deregister override\n")
+        sys.stderr.write('Failed to deregister override\n')
         pass
 
 
