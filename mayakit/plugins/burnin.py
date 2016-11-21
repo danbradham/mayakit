@@ -522,7 +522,7 @@ class burninDrawOverride(omr.MPxDrawOverride):
 
 
 def initializePlugin(obj):
-    if MAYA_VERSION < 2015:
+    if MAYA_VERSION < 2016:
         raise Exception('burnin only supported in Maya2015 or greater')
 
     plugin = om.MFnPlugin(obj)
