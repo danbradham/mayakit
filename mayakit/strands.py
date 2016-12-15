@@ -79,16 +79,26 @@ def new_strand(hair_system=None):
     start_loc = cmds.spaceLocator(name='strand_start#')[0]
     end_loc = cmds.spaceLocator(name='strand_end#')[0]
     cmds.xform(end_loc, ws=True, translation=end)
+
+    tta = cmds.createNode('transformsToArrays')
+    cmds.connectAttr(start_loc + '.worldMatrix', tta + '.inTransforms[0].inMatrix')
+    cmds.connectAttr(end_loc + '.worldMatrix', tta + '.inTransforms[1].inMatrix')
+    pcc = cmds.createNode('pointCloudToCurve')
+    cmds.connectAttr(tta + '.outPositionPP', pcc + '.inArray')
     expand_grp = cmds.group([start_loc, end_loc], name='strand_expand_grp#')
 
     curve, curve_shape = curve_between(start, end, name='strand_curve#')
+    cmds.connectAttr(pcc + '.outCurve', curve_shape + '.create')
     root_grp = cmds.group(empty=True, name='strand_grp#')
     cmds.parent([expand_grp, curve], root_grp)
 
     follicle_nodes, out_curve_nodes = add_curve_to_system(curve_shape, hair_system)
+    follicle_shape = follicle_nodes[1]
+    cmds.setAttr(follicle_shape + '.pointLock', 3)
+    cmds.setAttr(follicle_shape + '.sampleDensity', 24)
 
 
-def get_nucleus(nucleus=None):
+def get_nucleus():
     selection = cmds.ls(sl=True, dag=True, leaf=True, type='nucleus')
     if selection:
         return selection[0]
@@ -100,18 +110,6 @@ def get_nucleus(nucleus=None):
     nucleus = cmds.createNode('nucleus')
     cmds.connectAttr('time1.outTime', nucleus + '.currentTime')
     return nucleus
-
-
-def get_hair_system(hair_system=None):
-
-    if hair_system is None:
-        selection = cmds.ls(sl=True, dag=True, leaf=True, type='hairSystem')
-        if selection:
-            hair_system = selection[0]
-        else:
-            hair_system = create_hair_system()
-
-    return hair_system
 
 
 def create_hair_system(nucleus=None):
@@ -126,6 +124,7 @@ def create_hair_system(nucleus=None):
     input_active = '{}.inputActive[{}]'.format(nucleus, index)
     input_start = '{}.inputActiveStart[{}]'.format(nucleus, index)
     output_object = '{}.outputObjects[{}]'.format(nucleus, index)
+    cmds.setAttr(hair_system + '.active', 1)
     cmds.connectAttr(hair_system + '.currentState', input_active)
     cmds.connectAttr(hair_system + '.startState', input_start)
     cmds.connectAttr(output_object, hair_system + '.nextState')
@@ -169,7 +168,12 @@ def curve_to_hair(curve_shape, hair_system):
 
 def add_curve_to_system(curve_shape, hair_system=None):
 
-    hair_system = get_hair_system(hair_system)
+    if hair_system is None:
+        selection = cmds.ls(sl=True, dag=True, leaf=True, type='hairSystem')
+        if selection:
+            hair_system = selection[0]
+        else:
+            hair_system = create_hair_system()
 
     follicle_nodes, out_curve_nodes = curve_to_hair(curve_shape, hair_system)
     follicles_grp = hair_system + 'Follicles'
@@ -182,13 +186,3 @@ def add_curve_to_system(curve_shape, hair_system=None):
     cmds.parent(out_curve_nodes[0], outcurves_grp)
 
     return follicle_nodes, out_curve_nodes
-
-
-def particles_to_strands(particle_shape, hair_system=None):
-
-    positions = cmds.getAttr(particle_shape + '.worldPosition')
-
-    for position in positions:
-        a = om.MVector(*position)
-        b = a - om.MVector(0, 6, 0)
-        curve = curve_between(a, b, num_points=12, name='strand#')

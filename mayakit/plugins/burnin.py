@@ -45,10 +45,78 @@ FONT_STRETCHES = {
     100: 'Unstretched'
 }
 USE_FONT_OPTION = 9999
+view_menu_proc = 'postModelEditorViewMenuCmd'
 
 
 def maya_useNewAPI():
     pass
+
+
+def get_viewport_burnin():
+    '''Get the default viewport burnin'''
+
+    viewport_burnin = cmds.ls('*.viewport_burnin', objectsOnly=True)
+    if viewport_burnin:
+        return viewport_burnin[0]
+
+
+def toggle_burnin(value):
+    '''Toggle default viewport burnin'''
+
+    viewport_burnin = get_viewport_burnin()
+    if viewport_burnin:
+        cmds.setAttr(viewport_burnin + '.v', value)
+        return
+
+    if not value:
+        return
+
+    if not cmds.pluginInfo(burnin.type_name, q=True, loaded=True):
+        cmds.loadPlugin(burnin.type_name)
+
+    viewport_burnin = cmds.createNode('burnin')
+    cmds.addAttr(viewport_burnin, ln='viewport_burnin', at='bool', dv=True)
+    cmds.setAttr(viewport_burnin + '.fontSize', 16)
+    cmds.setAttr(viewport_burnin + '.fontWeight', 75)
+    cmds.setAttr(viewport_burnin + '.fontAlpha', 0.75)
+
+    t0 = viewport_burnin + '.textArray[0]'
+    cmds.setAttr(t0 + '.textString', '{frame:0>3d}\n{camera}', type='string')
+    cmds.setAttr(t0 + '.textColor', 1, 1, 1)
+    cmds.setAttr(t0 + '.textAlign', 7)
+
+    t1 = viewport_burnin + '.textArray[1]'
+    cmds.setAttr(t1 + '.textString', '{user}\n{scene}', type='string')
+    cmds.setAttr(t1 + '.textColor', 1, 1, 1)
+    cmds.setAttr(t1 + '.textAlign', 6)
+
+def view_menu_callback(*args):
+    '''Callback for global mel proc postModelEditorViewMenuCmd'''
+
+    menu_path = args[0]
+    model_panel = args[1]
+    menu_item_path = model_panel + 'burnin'
+
+    burnin_enabled = False
+    viewport_burnin = get_viewport_burnin()
+    if viewport_burnin:
+        burnin_enabled = cmds.getAttr(viewport_burnin + '.v')
+
+    cmds.setParent(menu_path, m=True)
+    if not cmds.menuItem(menu_item_path, exists=True):
+        cmds.menuItem(d=True)
+        cmds.menuItem(
+            menu_item_path,
+            label='Burn In',
+            checkBox=burnin_enabled,
+            command=toggle_burnin
+        )
+    else:
+        cmds.menuItem(
+            menu_item_path,
+            edit=True,
+            checkBox=burnin_enabled
+        )
 
 
 def get_font_options(mobj):
@@ -145,6 +213,12 @@ def get_textArray_data(mobj):
     return data
 
 
+def set_textArray_data(mobj, text_data):
+    '''Set all data from a list of dicts'''
+
+    pass
+
+
 def textString_to_lines(textString):
     '''Splits a unicode textString into lines'''
 
@@ -172,7 +246,7 @@ def get_text_position_and_alignment(view_width, view_height, alignment,
     elif alignment < 6:
         y = int(view_height * 0.5 + (num_lines * 0.5 * line_height) - offset[1])
     else:
-        y = line_height + (num_lines * line_height) + offset[1]
+        y = line_height + ((num_lines - 1) * line_height) + offset[1]
 
     return x, y, align
 

@@ -112,32 +112,3 @@ def get_mel_proc_data(mel_proc):
 
     return mel_file, ''.join(mel_code), params
 
-
-def safe_add_menuItem(menu_path, menu_item_path, **kwargs):
-
-    cmds.setParent(menu_path, m=True)
-    if not cmds.menuItem(menu_item_path, exists=True):
-        cmds.menuItem(menu_item_path, **kwargs)
-
-    return menu_item_path
-
-
-def whatIs(mel_proc):
-    if mel_proc in MelProcCallback._registry:
-        print MelProcCallback._registry[mel_proc][0]
-    else:
-        mel.eval('whatIs {};'.format(mel_proc))
-
-
-if __name__ == '__main__':
-    def view_menu_callback(*args):
-        cmds.setParent(args[0], m=True)
-        menu_item = safe_add_menuItem(
-            args[0],
-            args[1] + 'hello',
-            label='HELLO',
-            checkBox=False,
-        )
-
-    MelProcCallback.add('postModelEditorViewMenuCmd', view_menu_callback)
-    MelProcCallback.remove('postModelEditorViewMenuCmd', view_menu_callback)
