@@ -2,7 +2,7 @@
 mayakit
 =======
 
-A proving grounds for scripts and plugins for Autodesk Maya.
+Useful scripts and plugins for Autodesk Maya.
 
 
 mayakit.plugins
@@ -32,6 +32,13 @@ and subCurve nodes. The benefit over rebuildCurve is that resampling the curve
 does not attempt to maintain curvature and will not suffer from *stray points*
 when resampling with lots of points.
 
+mayakit.plugins.pointsOnCurve
+-----------------------------
+Outputs matrices distributed along a nurbsCurve
+
+mayakit.plugins.textureSampler
+------------------------------
+Samples a shading network at the specified uv coordinates
 
 mayakit.strands
 ===============
