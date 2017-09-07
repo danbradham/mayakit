@@ -43,7 +43,7 @@ def create_joint(pos, aim_vect=AXIS['x'], aim_axis='x',
         N *= -1
 
     matrix = [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1]
-    slices = dict(x=(0,3), y=(4,7), z=(8, 11))
+    slices = dict(x=(0, 3), y=(4, 7), z=(8, 11))
     t_slice = slices.pop(aim_axis.lstrip('-'))
     n_slice = slices.pop(up_axis.lstrip('-'))
     b_slice = slices.popitem()[1]

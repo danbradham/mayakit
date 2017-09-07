@@ -186,3 +186,20 @@ def add_curve_to_system(curve_shape, hair_system=None):
     cmds.parent(out_curve_nodes[0], outcurves_grp)
 
     return follicle_nodes, out_curve_nodes
+
+
+def add_curves_to_hair_system():
+
+    sel = cmds.ls(sl=True, dag=True, leaf=True)
+    if len(sel) < 2:
+        cmds.warning('Select a bunch of curves and a hairSystem node.')
+        return
+
+    curves = sel[:-1]
+    hair_system = sel[-1]
+    if cmds.nodeType(hair_system) != 'hairSystem':
+        cmds.warning(hair_system + ' is not a hairSystem.')
+        return
+
+    for curve in curves:
+        add_curve_to_system(curve, hair_system)
