@@ -143,21 +143,22 @@ def add_follicle(follicle_shape, hair_system):
 
 def curve_to_hair(curve_shape, hair_system):
 
-    curve = cmds.listRelatives(curve_shape, parent=True)[0]
+    curve = cmds.listRelatives(curve_shape, parent=True, f=True)[0]
+    curve_name = curve.split('|')[-1]
 
     # Create follicle
     follicle_shape = cmds.createNode('follicle')
-    follicle = cmds.listRelatives(follicle_shape, parent=True)[0]
-    follicle = cmds.rename(follicle, curve + '_follicle')
-    follicle_shape = cmds.listRelatives(follicle, shapes=True)[0]
+    follicle = cmds.listRelatives(follicle_shape, parent=True, f=True)[0]
+    follicle = cmds.rename(follicle, curve_name + '_follicle#')
+    follicle_shape = cmds.listRelatives(follicle, shapes=True, f=True)[0]
     cmds.connectAttr(curve + '.worldMatrix', follicle_shape + '.startPositionMatrix')
     cmds.connectAttr(curve_shape + '.local', follicle_shape + '.startPosition')
 
-    # Create output curve
+    # # Create output curve
     out_curve_shape = cmds.createNode('nurbsCurve')
-    out_curve = cmds.listRelatives(out_curve_shape, parent=True)[0]
-    out_curve = cmds.rename(out_curve, curve + '_out')
-    out_curve_shape = cmds.listRelatives(out_curve, shapes=True)[0]
+    out_curve = cmds.listRelatives(out_curve_shape, parent=True, f=True)[0]
+    out_curve = cmds.rename(out_curve, curve_name + '_out#')
+    out_curve_shape = cmds.listRelatives(out_curve, shapes=True, f=True)[0]
     cmds.connectAttr(follicle + '.outCurve', out_curve_shape + '.create')
 
     # Add follicle to hair system
@@ -177,26 +178,27 @@ def add_curve_to_system(curve_shape, hair_system=None):
 
     follicle_nodes, out_curve_nodes = curve_to_hair(curve_shape, hair_system)
     follicles_grp = hair_system + 'Follicles'
-    outcurves_grp = hair_system + 'OutputCurves'
     if not cmds.objExists(follicles_grp):
         cmds.group(empty=True, name=follicles_grp)
+    cmds.parent(follicle_nodes[0], follicles_grp)
+
+    outcurves_grp = hair_system + 'OutputCurves'
     if not cmds.objExists(outcurves_grp):
         cmds.group(empty=True, name=outcurves_grp)
-    cmds.parent(follicle_nodes[0], follicles_grp)
     cmds.parent(out_curve_nodes[0], outcurves_grp)
 
-    return follicle_nodes, out_curve_nodes
+    return follicle_nodes
 
 
 def add_curves_to_hair_system():
 
-    sel = cmds.ls(sl=True, dag=True, leaf=True)
+    sel = cmds.ls(sl=True, dag=True, leaf=True, long=True)
     if len(sel) < 2:
         cmds.warning('Select a bunch of curves and a hairSystem node.')
         return
 
     curves = sel[:-1]
-    hair_system = sel[-1]
+    hair_system = sel[-1].split('|')[-1]
     if cmds.nodeType(hair_system) != 'hairSystem':
         cmds.warning(hair_system + ' is not a hairSystem.')
         return
