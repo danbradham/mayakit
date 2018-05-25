@@ -46,6 +46,7 @@ def conform_curve(source, destination):
 def cool(t):
     return sin(t * pi * 0.5)
 
+
 def inverse_square(t):
     try:
         return 1 / t

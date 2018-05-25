@@ -45,7 +45,15 @@ FONT_STRETCHES = {
     100: 'Unstretched'
 }
 USE_FONT_OPTION = 9999
-view_menu_proc = 'postModelEditorViewMenuCmd'
+BOX_TYPES = {
+    0: 'square',
+    1: 'horizontal',
+    2: 'vertical',
+}
+view_menu_procs = [
+    'postModelEditorViewMenuCmd',
+    'postModelEditorViewMenuCmd_Old'
+]
 
 
 def maya_useNewAPI():
@@ -75,20 +83,41 @@ def toggle_burnin(value):
         cmds.loadPlugin(burnin.type_name)
 
     viewport_burnin = cmds.createNode('burnin')
+    cmds.setAttr(viewport_burnin + '.overrideEnabled', 1)
+    cmds.setAttr(viewport_burnin + '.overrideDisplayType', 2)
     cmds.addAttr(viewport_burnin, ln='viewport_burnin', at='bool', dv=True)
-    cmds.setAttr(viewport_burnin + '.fontSize', 16)
-    cmds.setAttr(viewport_burnin + '.fontWeight', 75)
-    cmds.setAttr(viewport_burnin + '.fontAlpha', 0.75)
+    cmds.setAttr(viewport_burnin + '.fontSize', 24)
+    cmds.setAttr(viewport_burnin + '.fontWeight', 25)
+    cmds.setAttr(viewport_burnin + '.fontAlpha', 1.0)
+
+    for i, font in enumerate(FONT_FAMILIES):
+        if font == 'Consolas':
+            cmds.setAttr(viewport_burnin + '.fontFamily', i)
 
     t0 = viewport_burnin + '.textArray[0]'
-    cmds.setAttr(t0 + '.textString', '{frame:0>3d}\n{camera}', type='string')
+    cmds.setAttr(
+        t0 + '.textString',
+        '{camera} : {focal_length:>3.0f}mm : {frame:0>3d}',
+        type='string'
+    )
     cmds.setAttr(t0 + '.textColor', 1, 1, 1)
-    cmds.setAttr(t0 + '.textAlign', 7)
+    cmds.setAttr(t0 + '.textAlign', 8)
+    cmds.setAttr(t0 + '.textOffset', 0, -28)
+    cmds.setAttr(t0 + '.textAlpha', 1.0)
 
     t1 = viewport_burnin + '.textArray[1]'
-    cmds.setAttr(t1 + '.textString', '{user}\n{scene}', type='string')
+    cmds.setAttr(t1 + '.textString', '{user:>12} : {scene}', type='string')
     cmds.setAttr(t1 + '.textColor', 1, 1, 1)
     cmds.setAttr(t1 + '.textAlign', 6)
+    cmds.setAttr(t1 + '.textOffset', 0, -28)
+    cmds.setAttr(t1 + '.textAlpha', 1.0)
+
+    b0 = viewport_burnin + '.boxArray[0]'
+    cmds.setAttr(b0 + '.boxType', 1)
+    cmds.setAttr(b0 + '.boxSize', 24, 24)
+    cmds.setAttr(b0 + '.boxAlpha', 0.2)
+    cmds.setAttr(b0 + '.boxAlign', 7)
+
 
 def view_menu_callback(*args):
     '''Callback for global mel proc postModelEditorViewMenuCmd'''
@@ -213,6 +242,41 @@ def get_textArray_data(mobj):
     return data
 
 
+def get_boxArray_data(mobj):
+    '''Get all data from the boxArray attribute'''
+
+    data = []
+
+    boxArray_mobj = om.MFnDependencyNode(mobj).attribute('boxArray')
+    boxArray_plug = om.MPlug(mobj, boxArray_mobj)
+    for i in boxArray_plug.getExistingArrayAttributeIndices():
+        plug = boxArray_plug.elementByLogicalIndex(i)
+
+        plug_data = {
+            'boxType': plug.child(0).asShort(),
+            'boxFill': plug.child(1).asBool(),
+            'boxAlign': plug.child(2).asShort(),
+            'boxOffset': (
+                plug.child(3).child(0).asInt(),
+                plug.child(3).child(1).asInt(),
+            ),
+            'boxSize': (
+                plug.child(4).child(0).asInt(),
+                plug.child(4).child(1).asInt(),
+            ),
+            'boxColor': (
+                plug.child(5).child(0).asDouble(),
+                plug.child(5).child(1).asDouble(),
+                plug.child(5).child(2).asDouble(),
+            ),
+            'boxAlpha': plug.child(6).asFloat(),
+        }
+
+        data.append(plug_data)
+
+    return data
+
+
 def set_textArray_data(mobj, text_data):
     '''Set all data from a list of dicts'''
 
@@ -231,24 +295,47 @@ def get_text_position_and_alignment(view_width, view_height, alignment,
     alignment of the text.
     '''
 
-    if alignment in (0, 3, 6):
+    if alignment in (0, 3, 6):  # LEFT
         x = line_height + offset[0]
-        align = 0 # kLeft
-    elif alignment in (1, 4, 7):
+        align = 0
+    elif alignment in (1, 4, 7):  # CENTER
         x = int(view_width * 0.5 - offset[0])
-        align = 1 # kCenter
-    else:
+        align = 1
+    else:  # RIGHT
         x = view_width - line_height - offset[0]
-        align = 2 # kRight
+        align = 2
 
-    if alignment < 3:
+    if alignment < 3:  # TOP
         y = view_height - line_height - offset[1]
-    elif alignment < 6:
-        y = int(view_height * 0.5 + (num_lines * 0.5 * line_height) - offset[1])
-    else:
+    elif alignment < 6:  # MIDDLE
+        y = int(
+            view_height * 0.5 +
+            (num_lines * 0.5 * line_height) -
+            offset[1]
+        )
+    else:  # BOTTOM
         y = line_height + ((num_lines - 1) * line_height) + offset[1]
 
     return x, y, align
+
+
+def get_box_position(view_width, view_height, alignment, scale, offset):
+
+    if alignment in (0, 3, 6):  # LEFT
+        x = scale[0] + offset[0]
+    elif alignment in (1, 4, 7):  # CENTER
+        x = int(view_width * 0.5 - offset[0])
+    else:  # RIGHT
+        x = view_width - scale[0] - offset[0]
+
+    if alignment < 3:  # TOP
+        y = view_height - scale[1] - offset[1]
+    elif alignment < 6:  # MIDDLE
+        y = int(view_height * 0.5 + offset[1])
+    else:  # BOTTOM
+        y = scale[1] + offset[1]
+
+    return x, y
 
 
 class burnin(omui.MPxLocatorNode):
@@ -280,9 +367,12 @@ class burnin(omui.MPxLocatorNode):
         text_data = get_textArray_data(self.thisMObject())
         font_options = get_font_options(self.thisMObject())
         camera = view.getCamera()
+        camera_fn = om.MFnDependencyNode(camera.pop(0).node())
+        focal_length = camera_fn.findPlug('focalLength', False).asFloat()
         format_data = get_format_data(
             self.thisMObject(),
-            camera=camera.pop(1).partialPathName()
+            camera=camera.pop(1).partialPathName(),
+            focal_length=focal_length
         )
         line_height = 20
         view_width = view.portWidth()
@@ -293,7 +383,7 @@ class burnin(omui.MPxLocatorNode):
         for text in text_data:
             try:
                 formatted = text['textString'].format(**format_data)
-            except:
+            except Exception:
                 formatted = repr(text['textString'])[2:-1]
 
             lines = textString_to_lines(formatted)
@@ -327,6 +417,8 @@ class burnin(omui.MPxLocatorNode):
         num_attr = om.MFnNumericAttribute()
         enum_attr = om.MFnEnumAttribute()
         comp_attr = om.MFnCompoundAttribute()
+
+        # Default font attributes
 
         fontFamily = enum_attr.create('fontFamily', 'ffamily')
         for i, font in enumerate(FONT_FAMILIES):
@@ -387,6 +479,8 @@ class burnin(omui.MPxLocatorNode):
         num_attr.channelBox = True
         num_attr.affectsAppearance = True
         cls.addAttribute(fontSize)
+
+        # textArray attributes
 
         textString = typ_attr.create(
             'textString',
@@ -477,6 +571,91 @@ class burnin(omui.MPxLocatorNode):
         comp_attr.affectsAppearance = True
         cls.addAttribute(cls.textArray)
 
+        # boxArray attributes
+
+        boxType = enum_attr.create('boxType', 'btype')
+        for i, type in BOX_TYPES.items():
+            enum_attr.addField(type, i)
+        enum_attr.internal = True
+
+        boxFill = num_attr.create(
+            'boxFill',
+            'bfill',
+            om.MFnNumericData.kBoolean
+        )
+        num_attr.default = True
+        num_attr.internal = True
+
+        boxAlign = enum_attr.create('boxAlign', 'balign')
+        for i, alignment in enumerate(ALIGNMENTS):
+            enum_attr.addField(alignment, i)
+        enum_attr.internal = True
+
+        boxOffsetX = num_attr.create(
+            'boxOffsetX',
+            'boffsetx',
+            om.MFnNumericData.kLong
+        )
+        num_attr.internal = True
+
+        boxOffsetY = num_attr.create(
+            'boxOffsetY',
+            'boffsety',
+            om.MFnNumericData.kLong
+        )
+        num_attr.internal = True
+
+        boxOffset = comp_attr.create('boxOffset', 'boffset')
+        comp_attr.addChild(boxOffsetX)
+        comp_attr.addChild(boxOffsetY)
+
+        boxSizeX = num_attr.create(
+            'boxSizeX',
+            'bscalex',
+            om.MFnNumericData.kLong
+        )
+        num_attr.default = 100
+        num_attr.internal = True
+
+        boxSizeY = num_attr.create(
+            'boxSizeY',
+            'bscaley',
+            om.MFnNumericData.kLong
+        )
+        num_attr.default = 100
+        num_attr.internal = True
+
+        boxSize = comp_attr.create('boxSize', 'bscale')
+        comp_attr.addChild(boxSizeX)
+        comp_attr.addChild(boxSizeY)
+
+        boxColor = num_attr.createColor('boxColor', 'bcolor')
+        num_attr.internal = True
+
+        boxAlpha = num_attr.create(
+            'boxAlpha',
+            'balpha',
+            om.MFnNumericData.kFloat
+        )
+        num_attr.setMin(0.0)
+        num_attr.setMax(1.0)
+        num_attr.default = 0.5
+        num_attr.internal = True
+
+        cls.boxArray = comp_attr.create('boxArray', 'barray')
+        comp_attr.addChild(boxType)
+        comp_attr.addChild(boxFill)
+        comp_attr.addChild(boxAlign)
+        comp_attr.addChild(boxOffset)
+        comp_attr.addChild(boxSize)
+        comp_attr.addChild(boxColor)
+        comp_attr.addChild(boxAlpha)
+        comp_attr.array = True
+        comp_attr.affectsAppearance = True
+        cls.addAttribute(cls.boxArray)
+
+        # intArray attribute
+
         cls.intArray = num_attr.create(
             'intArray', 'iarray', om.MFnNumericData.kLong)
         num_attr.storable = True
@@ -487,6 +666,8 @@ class burnin(omui.MPxLocatorNode):
         num_attr.usesArrayDataBuilder = True
         comp_attr.affectsAppearance = True
         cls.addAttribute(cls.intArray)
+
+        # floatArray attribute
 
         cls.floatArray = num_attr.create(
             'floatArray', 'farray', om.MFnNumericData.kDouble)
@@ -505,6 +686,7 @@ class burninDrawOverride(omr.MPxDrawOverride):
     def __init__(self, obj):
         super(burninDrawOverride, self).__init__(obj, self.draw)
         self.text_data = None
+        self.box_data = None
         self.font_options = None
 
     @classmethod
@@ -518,12 +700,13 @@ class burninDrawOverride(omr.MPxDrawOverride):
     def prepareForDraw(self, objPath, camera, frameContext, oldData):
         mobj = objPath.node()
         self.text_data = get_textArray_data(mobj)
+        self.box_data = get_boxArray_data(mobj)
         self.font_options = get_font_options(mobj)
 
     def supportedDrawAPIs(self):
         return (
-            omr.MRenderer.kOpenGL|
-            omr.MRenderer.kDirectX11|
+            omr.MRenderer.kOpenGL |
+            omr.MRenderer.kDirectX11 |
             omr.MRenderer.kOpenGLCoreProfile
         )
 
@@ -536,6 +719,7 @@ class burninDrawOverride(omr.MPxDrawOverride):
     def addUIDrawables(self, objPath, drawManager, frameContext, data):
         mobj = objPath.node()
         text_data = self.text_data
+        box_data = self.box_data
         font_options = self.font_options
         if not text_data or not font_options:
             return
@@ -546,9 +730,12 @@ class burninDrawOverride(omr.MPxDrawOverride):
             return font_options['font' + name]
 
         camera = frameContext.getCurrentCameraPath()
+        camera_fn = om.MFnDependencyNode(camera.pop(0).node())
+        focal_length = camera_fn.findPlug('focalLength', False).asFloat()
         format_data = get_format_data(
             mobj,
-            camera=camera.pop(1).partialPathName()
+            camera=camera.pop(1).partialPathName(),
+            focal_length=focal_length
         )
         dimensions = frameContext.getViewportDimensions()
         view_width = dimensions[2]
@@ -568,7 +755,7 @@ class burninDrawOverride(omr.MPxDrawOverride):
             try:
                 formatted = text['textString'].format(**format_data)
             except:
-                formatted = repr(text['textString'])[2:-1]
+                formatted = 'Error! Unable to format text string.'
 
             lines = textString_to_lines(formatted)
             x, y, alignment = get_text_position_and_alignment(
@@ -594,6 +781,33 @@ class burninDrawOverride(omr.MPxDrawOverride):
 
         drawManager.endDrawable()
 
+        drawManager.beginDrawable()
+
+        for box in box_data:
+
+            scalex, scaley = box['boxSize']
+
+            box_type = box['boxType']
+            if box_type == 1:
+                scalex = view_width
+            elif box_type == 2:
+                scaley = view_height
+
+            x, y = get_box_position(
+                view_width=view_width,
+                view_height=view_height,
+                alignment=box['boxAlign'],
+                scale=[scalex, scaley],
+                offset=box['boxOffset'],
+            )
+            fill = box['boxFill']
+            up = om.MVector(0, 1, 0)
+            color = om.MColor(list(box['boxColor']) + [box['boxAlpha']])
+            drawManager.setColor(color)
+            drawManager.rect2d(om.MPoint(x, y), up, scalex, scaley, fill)
+
+        drawManager.endDrawable()
+
 
 def initializePlugin(obj):
     if MAYA_VERSION < 2016:
@@ -610,7 +824,7 @@ def initializePlugin(obj):
             om.MPxNode.kLocatorNode,
             burnin.type_classification
         )
-    except:
+    except Exception:
         sys.stderr.write('Failed to register node\n')
         raise
 
@@ -620,7 +834,7 @@ def initializePlugin(obj):
             burnin.type_name,
             burninDrawOverride.creator
         )
-    except:
+    except Exception:
         sys.stderr.write('Failed to register override\n')
         raise
 
@@ -630,7 +844,7 @@ def uninitializePlugin(obj):
 
     try:
         plugin.deregisterNode(burnin.type_id)
-    except:
+    except Exception:
         sys.stderr.write('Failed to deregister node\n')
         raise
 
@@ -639,7 +853,7 @@ def uninitializePlugin(obj):
             burnin.type_classification,
             burnin.type_name
         )
-    except:
+    except Exception:
         sys.stderr.write('Failed to deregister override\n')
         pass
 
@@ -655,6 +869,7 @@ Available format data:
     start:          Start frame
     end:            End frame
     camera:         Current Camera
+    focal_length:   Current focal length
     scene:          Current Scene Name
     user:           Current username
     intArray[n]:    Input Ints
@@ -689,8 +904,6 @@ class AEBurninTemplate(pm.ui.AETemplate):
     def __init__(self, nodeName):
         super(AEBurninTemplate, self).__init__(nodeName)
 
-        #Template layout
-        self.textfields = []
         self.beginScrollLayout()
 
         self.beginLayout('Font Options', collapse=False)
@@ -699,6 +912,13 @@ class AEBurninTemplate(pm.ui.AETemplate):
         self.addControl('fontWeight')
         self.addControl('fontStretch')
         self.addControl('fontAlpha')
+        self.endLayout()
+
+        self.beginLayout("Box Array", collapse=False)
+        self.callCustom(
+            self.box_array_builder,
+            self.box_array_builder,
+            "boxArray")
         self.endLayout()
 
         self.beginLayout("Text Array", collapse=False)
@@ -794,12 +1014,16 @@ class AEBurninTemplate(pm.ui.AETemplate):
             textWeight_attr = index_attr + '.textWeight'
             textStretch_attr = index_attr + '.textStretch'
 
-            pm.frameLayout(label=index_attr, collapse=False)
+            pm.frameLayout(label=index_attr, collapse=True)
             pm.columnLayout(adj=True)
 
             text_field = pm.scrollField()
             self.textfields.append(text_field)
-            text_field_cmd = partial(self.set_string_attr, text_field, textString_attr)
+            text_field_cmd = partial(
+                self.set_string_attr,
+                text_field,
+                textString_attr
+            )
             text_field.changeCommand(text_field_cmd)
             text_field.keyPressCommand(text_field_cmd)
             text_field.setText(pm.getAttr(textString_attr))
@@ -831,7 +1055,65 @@ class AEBurninTemplate(pm.ui.AETemplate):
     def rem_text_multiInstance(self, attrName, *args):
         pm.removeMultiInstance(attrName)
 
+    def box_array_builder(self, attrName):
+        frame = 'box_array_frame'
+
+        if pm.columnLayout(frame, exists=True):
+            pm.deleteUI(frame)
+
+        pm.columnLayout(frame)
+        pm.rowLayout(numberOfColumns=2)
+
+        box_array_length = pm.getAttr(attrName, s=True)
+        next_attr = '{}[{}]'.format(attrName, box_array_length)
+        add_command = partial(self.add_box_multiInstance, next_attr)
+        pm.button(label='New Item', command=add_command)
+
+        last_attr = '{}[{}]'.format(attrName, box_array_length - 1)
+        remove_command = partial(self.rem_box_multiInstance, last_attr)
+        pm.button(label='Remove Last Item', command=remove_command)
+
+        pm.setParent('..')
+
+        self.boxfields = []
+        for i in xrange(box_array_length):
+            index_attr = '{}[{}]'.format(attrName, i)
+            boxType_attr = index_attr + '.boxType'
+            boxFill_attr = index_attr + '.boxFill'
+            boxAlign_attr = index_attr + '.boxAlign'
+            boxOffset_attr = index_attr + '.boxOffset'
+            boxSize_attr = index_attr + '.boxSize'
+            boxColor_attr = index_attr + '.boxColor'
+            boxAlpha_attr = index_attr + '.boxAlpha'
+
+            pm.frameLayout(label=index_attr, collapse=True)
+            pm.columnLayout(adj=True)
+
+            pm.attrEnumOptionMenuGrp(attribute=boxType_attr, label='boxType')
+            pm.attrControlGrp(attribute=boxFill_attr, label='boxFill')
+            pm.attrEnumOptionMenuGrp(attribute=boxAlign_attr, label='boxAlign')
+            pm.attrFieldGrp(attribute=boxOffset_attr, label='boxOffset')
+            pm.attrControlGrp(attribute=boxSize_attr, label='boxSize')
+            pm.attrControlGrp(attribute=boxColor_attr, label='boxColor')
+            pm.attrControlGrp(attribute=boxAlpha_attr, label='boxAlpha')
+
+            pm.setParent('..')
+            pm.setParent('..')
+
+    def add_box_multiInstance(self, attrName, *args):
+        pm.setAttr(attrName + '.boxAlign', 0)
+
+    def rem_box_multiInstance(self, attrName, *args):
+        pm.removeMultiInstance(attrName)
+
     def create_help_display(self, *args):
+        frame = 'help_frame'
+
+        if pm.columnLayout(frame, exists=True):
+            pm.deleteUI(frame)
+
+        pm.columnLayout(frame)
         self.help_field = pm.scrollField()
         self.help_field.setEditable(False)
         self.help_field.setText(HELP_STR)
+        pm.setParent('..')

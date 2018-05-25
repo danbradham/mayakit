@@ -4,9 +4,10 @@ from .plugins import burnin
 
 
 def add_callbacks():
-    '''Install all bns callbacks'''
+    '''Install all mayakit callbacks'''
 
-    MelProcCallback.add(burnin.view_menu_proc, burnin.view_menu_callback)
+    for proc in burnin.view_menu_procs:
+        MelProcCallback.add(proc, burnin.view_menu_callback)
 
 
 executeDeferred(add_callbacks)

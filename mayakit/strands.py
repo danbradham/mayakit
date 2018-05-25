@@ -6,7 +6,7 @@ Easy strands library
 
 from __future__ import division
 import maya.api.OpenMaya as om
-from maya import cmds, mel
+from maya import cmds
 
 
 def linspace(tmin, tmax, n):
