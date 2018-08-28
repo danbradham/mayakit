@@ -3,10 +3,14 @@ import pymel.core.nodetypes as nodetypes
 
 
 def get_surface(node):
+
     if isinstance(node, nodetypes.Transform):
-        return node.getShape(noIntermediate=True)
+        node = node.getShape(noIntermediate=True)
+
     if isinstance(node, (nodetypes.NurbsSurface, nodetypes.Mesh)):
         return node
+
+    raise ValueError('node must be NurbsSurface or Mesh...')
 
 
 class Follicle(object):
@@ -90,6 +94,46 @@ def uv_range(n, along_u=True):
         if along_u:
             v, u = u, v
         yield u, v
+
+
+def get_closest_uv(surface, point):
+    surface = get_surface(surface)
+
+    if isinstance(surface, nodetypes.NurbsSurface):
+        _, u, v = surface.closestPoint(point, space='world')
+        return u / surface.numSpansInU(), v / surface.numSpansInV()
+
+    if isinstance(surface, nodetypes.Mesh):
+        return surface.getUVAtPoint(point)
+
+
+def attach_selected_to_surface():
+
+    selection = pmc.selected()
+    transforms = selection[:-1]
+    surface = selection[-1]
+    with pmc.UndoChunk():
+        return attach_to_surface(transforms, surface)
+
+
+def attach_to_surface(transforms, surface):
+
+    if isinstance(transforms[0], basestring):
+        transforms = [pmc.PyNode(t) for t in transforms]
+    if isinstance(surface, basestring):
+        surface = pmc.PyNode(surface)
+
+    created = []
+    for transform in transforms:
+        p = pmc.xform(transform, query=True, worldSpace=True, rotatePivot=True)
+        uv = get_closest_uv(surface, p)
+        follicle = Follicle.create()
+        follicle.attach(surface)
+        follicle.set_uvs(*uv)
+        follicle.rename('rivet#')
+        created.append(follicle)
+
+    return created
 
 
 if __name__ == '__main__':

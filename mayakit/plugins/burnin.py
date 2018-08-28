@@ -86,7 +86,7 @@ def toggle_burnin(value):
     cmds.setAttr(viewport_burnin + '.overrideEnabled', 1)
     cmds.setAttr(viewport_burnin + '.overrideDisplayType', 2)
     cmds.addAttr(viewport_burnin, ln='viewport_burnin', at='bool', dv=True)
-    cmds.setAttr(viewport_burnin + '.fontSize', 24)
+    cmds.setAttr(viewport_burnin + '.fontSize', 18)
     cmds.setAttr(viewport_burnin + '.fontWeight', 25)
     cmds.setAttr(viewport_burnin + '.fontAlpha', 1.0)
 
@@ -102,19 +102,19 @@ def toggle_burnin(value):
     )
     cmds.setAttr(t0 + '.textColor', 1, 1, 1)
     cmds.setAttr(t0 + '.textAlign', 8)
-    cmds.setAttr(t0 + '.textOffset', 0, -28)
+    cmds.setAttr(t0 + '.textOffset', 0, -22)
     cmds.setAttr(t0 + '.textAlpha', 1.0)
 
     t1 = viewport_burnin + '.textArray[1]'
     cmds.setAttr(t1 + '.textString', '{user:>12} : {scene}', type='string')
     cmds.setAttr(t1 + '.textColor', 1, 1, 1)
     cmds.setAttr(t1 + '.textAlign', 6)
-    cmds.setAttr(t1 + '.textOffset', 0, -28)
+    cmds.setAttr(t1 + '.textOffset', 0, -22)
     cmds.setAttr(t1 + '.textAlpha', 1.0)
 
     b0 = viewport_burnin + '.boxArray[0]'
     cmds.setAttr(b0 + '.boxType', 1)
-    cmds.setAttr(b0 + '.boxSize', 24, 24)
+    cmds.setAttr(b0 + '.boxSize', 18, 18)
     cmds.setAttr(b0 + '.boxAlpha', 0.2)
     cmds.setAttr(b0 + '.boxAlign', 7)
 
