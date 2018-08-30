@@ -24,7 +24,7 @@ SHELF_BUTTONS = OrderedDict([
         'flat': True,
         'enableBackground': False,
     }),
-    ('Add Curves To Hair System',{
+    ('Add Curves To Hair System', {
         'command': (
             'import mayakit\n'
             'mayakit.add_curves_to_hair_system()'
@@ -33,6 +33,86 @@ SHELF_BUTTONS = OrderedDict([
         'style': 'iconOnly',
         'image': shelf_path('add_curves_to_hairSystem.png'),
         'annotation': 'Add selected curves to selected hairSystem',
+        'enableCommandRepeat': False,
+        'useAlpha': True,
+        'flat': True,
+        'enableBackground': False,
+    }),
+    ('Blank', {
+        'command': '',
+        'sourceType': 'python',
+        'style': 'iconOnly',
+        'image': shelf_path('blank.png'),
+        'annotation': '',
+        'enableCommandRepeat': False,
+        'useAlpha': True,
+        'flat': True,
+        'enableBackground': False,
+    }),
+    ('Create Strands Setup', {
+        'command': (
+            'import mayakit\n'
+            'mayakit.create_strands_system()'
+        ),
+        'sourceType': 'python',
+        'style': 'iconOnly',
+        'image': shelf_path('create_system.png'),
+        'annotation': 'Create a new strands setup',
+        'enableCommandRepeat': False,
+        'useAlpha': True,
+        'flat': True,
+        'enableBackground': False,
+    }),
+    ('Add Hair System', {
+        'command': (
+            'import mayakit\n'
+            'mayakit.create_strands_system()'
+        ),
+        'sourceType': 'python',
+        'style': 'iconOnly',
+        'image': shelf_path('create_hair_system.png'),
+        'annotation': 'Add a new hair system to the active setup',
+        'enableCommandRepeat': False,
+        'useAlpha': True,
+        'flat': True,
+        'enableBackground': False,
+    }),
+    ('Active Selected Hair System', {
+        'command': (
+            'import mayakit\n'
+            'mayakit.set_active_hairsystem_from_selected()'
+        ),
+        'sourceType': 'python',
+        'style': 'iconOnly',
+        'image': shelf_path('create_system.png'),
+        'annotation': 'Activate the selected hairSystem',
+        'enableCommandRepeat': False,
+        'useAlpha': True,
+        'flat': True,
+        'enableBackground': False,
+    }),
+    ('Create Strand', {
+        'command': (
+            'import mayakit\n'
+            'mayakit.create_strand()'
+        ),
+        'sourceType': 'python',
+        'style': 'iconOnly',
+        'image': shelf_path('create_system.png'),
+        'annotation': 'Create a new strand in the active hairSystem',
+        'enableCommandRepeat': False,
+        'useAlpha': True,
+        'flat': True,
+        'enableBackground': False,
+    }),
+    ('Curve to Strand', {
+        'command': (
+            'cmds.warning("N/A")'
+        ),
+        'sourceType': 'python',
+        'style': 'iconOnly',
+        'image': shelf_path('curve_to_strand.png'),
+        'annotation': 'Convert an existing curve to a strand...',
         'enableCommandRepeat': False,
         'useAlpha': True,
         'flat': True,

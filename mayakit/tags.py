@@ -9,8 +9,62 @@ MISSING = object()
 ANY = '*'
 
 
+def message(obj, *messages):
+    '''Add message attributes to an object'''
+
+    for msg in messages:
+        msg_path = obj + '.' + msg
+        if not cmds.objExists(msg_path):
+            cmds.addAttr(obj, ln=msg, at='message')
+
+
+def unmessage(obj, *messages):
+    '''Remove message attributes from an object'''
+
+    for msg in message:
+        msg_path = obj + '.' + msg
+        if cmds.objExists(msg_path):
+            cmds.deleteAttr(msg_path)
+
+
+def connect(src_message, dest_message, *objects):
+
+    # Validation
+    if not objects:
+        objects = cmds.ls(sl=True, long=True)
+        if not objects:
+            raise ValueError('Must select some objects')
+
+    if len(objects) < 2:
+        raise ValueError('Connect requires at least two objects')
+
+    src, dests = objects[0], objects[1:]
+    src_attr = src + '.' + src_message
+    for dest in dests:
+        dest_attr = dest + '.' + dest_message
+        cmds.connectAttr(src_attr, dest_attr, force=True)
+
+
+def disconnect(src_message, dest_message, *objects):
+
+    # Validation
+    if not objects:
+        objects = cmds.ls(sl=True, long=True)
+        if not objects:
+            raise ValueError('Must select some objects')
+
+    if len(objects) < 2:
+        raise ValueError('Connect requires at least two objects')
+
+    src, dests = objects[0], objects[1:]
+    src_attr = src + '.' + src_message
+    for dest in dests:
+        dest_attr = dest + '.' + dest_message
+        cmds.disconnectAttr(src_attr, dest_attr, force=True)
+
+
 def tag(obj, **tags):
-    '''Tag objects with an attribute'''
+    '''Add tag attributes to an object'''
 
     for attr, value in tags.items():
         attr_path = obj + '.' + attr
@@ -20,7 +74,7 @@ def tag(obj, **tags):
 
 
 def untag(obj, *attrs):
-    '''Remove an attribute tag from an object'''
+    '''Remove tag attributes from an object'''
 
     for attr in attrs:
         attr_path = obj + '.' + attr
