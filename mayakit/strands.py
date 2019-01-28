@@ -133,6 +133,8 @@ def create_strands_system(name='strands', activate=True):
 
 def create_strands_hair_system(name='strands', nucleus=None, activate=True):
 
+    nucleus = nucleus or get_active_nucleus()
+
     hair_system = create_hair_system(name + '_hair#', nucleus)
     cmds.setAttr(hair_system + '.stretchResistance', 500)
     cmds.setAttr(hair_system + '.drag', 0.1)

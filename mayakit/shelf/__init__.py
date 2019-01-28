@@ -66,7 +66,7 @@ SHELF_BUTTONS = OrderedDict([
     ('Add Hair System', {
         'command': (
             'import mayakit\n'
-            'mayakit.create_strands_system()'
+            'mayakit.create_strands_hair_system()'
         ),
         'sourceType': 'python',
         'style': 'iconOnly',
@@ -84,7 +84,7 @@ SHELF_BUTTONS = OrderedDict([
         ),
         'sourceType': 'python',
         'style': 'iconOnly',
-        'image': shelf_path('create_system.png'),
+        'image': shelf_path('activate_hair_system.png'),
         'annotation': 'Activate the selected hairSystem',
         'enableCommandRepeat': False,
         'useAlpha': True,
@@ -98,7 +98,7 @@ SHELF_BUTTONS = OrderedDict([
         ),
         'sourceType': 'python',
         'style': 'iconOnly',
-        'image': shelf_path('create_system.png'),
+        'image': shelf_path('create_strand.png'),
         'annotation': 'Create a new strand in the active hairSystem',
         'enableCommandRepeat': False,
         'useAlpha': True,
