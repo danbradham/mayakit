@@ -1,14 +1,14 @@
+# -*- coding: utf-8 -*-
 '''
 strands
 =======
 Easy strands library
 '''
-
 from __future__ import division
 import maya.api.OpenMaya as om
 from maya import cmds
 import uuid
-from .tags import tag, untag, search, query, ANY
+from . import tags
 
 
 def set_color(obj, *color):
@@ -24,22 +24,22 @@ def set_default_color(obj):
 
 
 def get_active_nucleus():
-    nuclei = search(strands_nucleus='active')
+    nuclei = tags.search(strands_nucleus='active')
     if nuclei:
         return nuclei[0]
 
 
 def set_active_nucleus(nucleus):
-    nuclei = search(strands_nucleus='active')
+    nuclei = tags.search(strands_nucleus='active')
     for _nucleus in nuclei:
-        tag(_nucleus, strands_nucleus='inactive')
+        tags.add(_nucleus, strands_nucleus='inactive')
         set_default_color(_nucleus)
-    tag(nucleus, strands_nucleus='active')
+    tags.add(nucleus, strands_nucleus='active')
     set_color(nucleus, 1.0, 1.0, 0.0)
 
 
 def get_active_hairsystem():
-    hair_systems = search(strands_hairsystem='active')
+    hair_systems = tags.search(strands_hairsystem='active')
     if hair_systems:
         return hair_systems[0]
 
@@ -52,20 +52,20 @@ def get_hairsystem_grp(hair_system):
 
 
 def get_strands_grp(hair_system):
-    groups = search(hair_system=query(hair_system, '_id'))
+    groups = tags.search(hair_system=tags.query(hair_system, '_id'))
     if groups:
         return groups[0]
 
 
 def set_active_hairsystem(hair_system):
-    hair_systems = search(strands_hairsystem='active')
+    hair_systems = tags.search(strands_hairsystem='active')
     for _hair_system in hair_systems:
-        tag(_hair_system, strands_hairsystem='inactive')
+        tags.add(_hair_system, strands_hairsystem='inactive')
         set_default_color(cmds.listRelatives(_hair_system, parent=True)[0])
         strands_grp = get_strands_grp(_hair_system)
         set_default_color(strands_grp)
 
-    tag(hair_system, strands_hairsystem='active')
+    tags.add(hair_system, strands_hairsystem='active')
     set_color(cmds.listRelatives(hair_system, parent=True)[0], 1.0, 1.0, 0.0)
     strands_grp = get_strands_grp(hair_system)
     set_color(strands_grp, 1.0, 1.0, 0.0)
@@ -123,7 +123,7 @@ def create_strands_system(name='strands', activate=True):
 
     nucleus = create_nucleus(name + '_nucleus#')
     nucleus_id = uuid.uuid4()
-    tag(nucleus, _id=nucleus_id)
+    tags.add(nucleus, _id=nucleus_id)
     cmds.group(nucleus, name=name + '_root#')
     create_strands_hair_system(name, nucleus, activate)
 
@@ -142,9 +142,9 @@ def create_strands_hair_system(name='strands', nucleus=None, activate=True):
     cmds.setAttr(hair_system + '.damp', 0.002)
     cmds.setAttr(hair_system + '.restLengthScale', 0.5)
     hair_id = uuid.uuid4()
-    tag(hair_system, _id=hair_id)
+    tags.add(hair_system, _id=hair_id)
     strands_grp = cmds.group(name=name + '_controls#')
-    tag(strands_grp, hair_system=hair_id)
+    tags.add(strands_grp, hair_system=hair_id)
 
     if activate:
         set_active_hairsystem(hair_system)

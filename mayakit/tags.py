@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 '''
 Attribute Tagging and Lookup API
 ================================
@@ -9,29 +10,37 @@ MISSING = object()
 ANY = '*'
 
 
-def add(obj, **tags):
+def add(objects=None, **tags):
     '''Add tag attributes to an object'''
 
-    for attr, value in tags.items():
-        attr_path = obj + '.' + attr
-        if not cmds.objExists(attr_path):
-            cmds.addAttr(obj, ln=attr, dt='string')
-        cmds.setAttr(attr_path, value, type='string')
+    if not objects:
+        objects = cmds.ls(sl=True, long=True)
+        if not objects:
+            raise ValueError('add() requires at least one object.')
+
+    if not isinstance(objects, SEQUENCE):
+        objects = [objects]
+
+    for tag, value in tags.items():
+        tag_path = obj + '.' + tag
+        if not cmds.objExists(tag_path):
+            cmds.addAttr(obj, ln=tag, dt='string')
+        cmds.setAttr(tag_path, value, type='string')
 
 
-def remove(obj, *attrs):
+def remove(obj, *tags):
     '''Remove tag attributes from an object'''
 
-    for attr in attrs:
-        attr_path = obj + '.' + attr
-        if cmds.objExists(attr_path):
-            cmds.deleteAttr(attr_path)
+    for tag in tags:
+        tag_path = obj + '.' + tag
+        if cmds.objExists(tag_path):
+            cmds.deleteAttr(tag_path)
 
 
-def get(obj):
+def ls(obj):
     '''Get all of an object's tags'''
 
-    user_attrs = cmds.listAttr(obj, userDefined=True)
+    user_attrs = cmds.listAttr(obj, userDefined=True) or []
     data = {}
     for a in user_attrs:
         attr_path = obj + '.' + a
@@ -40,30 +49,40 @@ def get(obj):
     return data
 
 
-def query(obj, attr, default=MISSING):
+def get(obj, tag, default=MISSING):
     '''Query an objects tag, returning the value or default'''
 
-    attr_path = obj + '.' + attr
-    if cmds.objExists(attr_path):
-        return cmds.getAttr(attr_path)
+    tag_path = obj + '.' + tag
+    if cmds.objExists(tag_path):
+        return cmds.getAttr(tag_path)
 
     if default is not MISSING:
         return default
 
-    raise AttributeError('Attribute does not exist: ' + attr_path)
+    raise AttributeError('Attribute does not exist: ' + tag_path)
+
+
+def exist(obj, *tags):
+    '''Returns True if the given message attributes exist'''
+
+    for tag in tags:
+        if not cmds.objExists(obj + '.' + tag):
+            return False
+    return True
 
 
 def search(**tags):
     '''Find all objects matching the specified tags'''
 
-    sel = set.intersection(
-        *[set(cmds.ls('*.' + a, objectsOnly=True, r=True)) for a in tags]
-    )
+    sel = set.intersection(*[
+        set(cmds.ls('*.' + tag, objectsOnly=True, recursive=True))
+        for tag in tags
+    ])
     objects = []
     for obj in sel:
         matches = [
-            fnmatch(cmds.getAttr(obj + '.' + a), v)
-            for a, v in tags.items()
+            fnmatch(cmds.getAttr(obj + '.' + tag), value)
+            for tag, value in tags.items()
         ]
         if all(matches):
             objects.append(obj)

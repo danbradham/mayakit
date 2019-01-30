@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 import pymel.core as pmc
 import pymel.core.nodetypes as nodetypes
 

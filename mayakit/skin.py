@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 from maya import cmds
 from . import utils
 

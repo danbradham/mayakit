@@ -1,3 +1,6 @@
+# -*- coding: utf-8 -*-
+__all__ = ['align_to_curve', 'align_selected_to_curve']
+
 import maya.api.OpenMaya as om
 from maya import cmds
 

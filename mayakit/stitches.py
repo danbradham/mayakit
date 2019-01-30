@@ -1,4 +1,4 @@
-from __future__ import division
+# -*- coding: utf-8 -*-
 from maya import cmds
 from maya.api.OpenMaya import MVector
 from math import pi, sin, cos, sqrt
@@ -49,9 +49,9 @@ def cool(t):
 
 def inverse_square(t):
     try:
-        return 1 / t
+        return 1.0 / t
     except ZeroDivisionError:
-        return 1
+        return 1.0
 
 
 def lerp(a, b, t):
@@ -59,7 +59,7 @@ def lerp(a, b, t):
     Linear Interpolate between two values
     '''
 
-    return a * (1 - t) + b * t
+    return a * (1.0 - t) + b * t
 
 
 def hermite(t):

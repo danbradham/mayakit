@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from maya.utils import executeDeferred
 from .callbacks import MelProcCallback
 from .plugins import burnin

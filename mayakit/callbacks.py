@@ -1,3 +1,6 @@
+# -*- coding: utf-8 -*-
+__all__ = ['MelProcCallback', 'get_mel_proc_data']
+
 import re
 from collections import defaultdict
 from maya import mel, cmds
