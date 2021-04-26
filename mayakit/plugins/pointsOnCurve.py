@@ -1,7 +1,9 @@
-from __future__ import division
+from __future__ import division, print_function
+
+import sys
+
 import maya.api.OpenMaya as om
 import pymel.core as pmc
-import sys
 
 
 def maya_useNewAPI():
@@ -14,9 +16,8 @@ def linspace(tmin, tmax, n):
     output = []
     spread = tmax - tmin
     step = spread / (n - 1.0)
-    for i in xrange(n):
+    for i in range(n):
         output.append(tmin + step * i)
-    print output
     return output
 
 

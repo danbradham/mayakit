@@ -218,7 +218,7 @@ def linspace(tmin, tmax, n):
     output = []
     spread = tmax - tmin
     step = spread / (n - 1)
-    for i in xrange(n):
+    for i in range(n):
         output.append(tmin + step * i)
     return output
 
@@ -233,11 +233,11 @@ def compute_knots(num_points, degree, array_typ=list):
 
     num_knots = num_points + degree - 1
     knots = array_typ()
-    for i in xrange(degree):
+    for i in range(degree):
         knots.append(0)
-    for i in xrange(num_knots - degree * 2):
+    for i in range(num_knots - degree * 2):
         knots.append(i + 1)
-    for j in xrange(degree):
+    for j in range(degree):
         knots.append(i + 2)  # exploit leaked reference
     return knots
 

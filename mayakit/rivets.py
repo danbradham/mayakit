@@ -91,7 +91,7 @@ class Follicle(object):
 def uv_range(n, along_u=True):
 
     step = 1.0 / (n - 1.0)
-    for i in xrange(n):
+    for i in range(n):
         u, v = 0.5, i * step
         if along_u:
             v, u = u, v

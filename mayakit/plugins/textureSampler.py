@@ -16,6 +16,7 @@ import pymel.core as pm
 def maya_useNewAPI():
     pass
 
+
 def get_mobj(node_path):
     '''
     Get MObject from node path like "ramp1" or "ramp1.outColor"
@@ -59,7 +60,7 @@ def sample_dyn2dtexture(node, texture_attr, uvs_list):
         result_alphas
     )
     colors = om.MFloatVectorArray()
-    for i in xrange(result_colors.length()):
+    for i in range(result_colors.length()):
         c = om1.MFloatVector(result_colors[i])
         colors.append(om.MVector(c.x, c.y, c.z))
 
@@ -110,7 +111,7 @@ def sample_2d_texture(texture_attr, uvs_list):
     )
 
     colors = om.MFloatVectorArray()
-    for i in xrange(result_colors.length()):
+    for i in range(result_colors.length()):
         c = om1.MFloatVector(result_colors[i])
         colors.append(om.MVector(c.x, c.y, c.z))
 
@@ -249,7 +250,7 @@ class textureSampler(om.MPxNode):
             else:
                 incolor_handle = data.inputValue(self.inColor)
                 c = incolor_handle.asMFloatVector()
-                colors_list = [c.copy() for i in xrange(num_colors)]
+                colors_list = [c.copy() for i in range(num_colors)]
 
             colors_handle = data.outputArrayValue(self.outColor)
             colors_builder = om.MArrayDataBuilder(data, self.outColor, num_colors)
@@ -262,7 +263,6 @@ class textureSampler(om.MPxNode):
 
             colors_handle.set(colors_builder)
             colors_handle.setAllClean()
-
 
     @classmethod
     def creator(cls):
@@ -376,7 +376,7 @@ class AEtextureSamplerTemplate(pm.ui.AETemplate):
 
         pm.setParent('..')
 
-        for i in xrange(uv_array_length):
+        for i in range(uv_array_length):
             index_attr = '{}[{}]'.format(attrName, i)
             u_attr = index_attr + '.uCoord'
             v_attr = index_attr + '.vCoord'

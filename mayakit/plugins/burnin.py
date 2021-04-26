@@ -966,7 +966,7 @@ class AEBurninTemplate(pm.ui.AETemplate):
         pm.setParent('..')
 
         array_length = pm.getAttr(attrName, s=True)
-        for i in xrange(array_length):
+        for i in range(array_length):
             index_attr = '{}[{}]'.format(attrName, i)
             pm.attrControlGrp(
                 attribute=index_attr,
@@ -1002,7 +1002,7 @@ class AEBurninTemplate(pm.ui.AETemplate):
         pm.setParent('..')
 
         self.textfields = []
-        for i in xrange(text_array_length):
+        for i in range(text_array_length):
             index_attr = '{}[{}]'.format(attrName, i)
             textString_attr = index_attr + '.textString'
             textAlign_attr = index_attr + '.textAlign'
@@ -1076,7 +1076,7 @@ class AEBurninTemplate(pm.ui.AETemplate):
         pm.setParent('..')
 
         self.boxfields = []
-        for i in xrange(box_array_length):
+        for i in range(box_array_length):
             index_attr = '{}[{}]'.format(attrName, i)
             boxType_attr = index_attr + '.boxType'
             boxFill_attr = index_attr + '.boxFill'

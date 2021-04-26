@@ -1,9 +1,12 @@
-from __future__ import absolute_import
+from __future__ import absolute_import, print_function
+
 import os
-from maya import mel, cmds
-from Qt import QtGui
 from functools import partial
 from collections import OrderedDict
+
+from maya import mel, cmds
+from Qt import QtGui
+
 
 this_package = os.path.abspath(os.path.dirname(__file__))
 shelf_path = partial(os.path.join, this_package)
@@ -140,9 +143,9 @@ def create_shelf():
             kwargs['height'] = img.height()
 
             cmds.shelfButton(label=button, parent=shelf, **kwargs)
-        except:
-            print button + ' failed...'
-            print kwargs
+        except Exception:
+            print(button + ' failed...')
+            print(kwargs)
 
 
 create_shelf()

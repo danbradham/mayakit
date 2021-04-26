@@ -21,7 +21,7 @@ def average_curves(*curves):
     if not all(len(points[0]) == len(curve_points) for curve_points in points):
         raise Exception('Input curves need to have the same number of cvs')
 
-    averaged = [[0, 0, 0] for i in xrange(len(points[0]))]
+    averaged = [[0, 0, 0] for i in range(len(points[0]))]
     for curve_points in points:
         for point in curve_points:
             averaged[0] += point[0]
@@ -123,7 +123,7 @@ def stitch_curves(curve_a, curve_b, stitches, stitch_points, u_offset=0,
     a_normal = normal_fn(a_point)
     a_tangent = MVector(*tangent_at_parameter(curve_a, u_offset))
 
-    for i in xrange(stitches * 2):
+    for i in range(stitches * 2):
 
         u = ((stitch_step * (i + 1)) + u_offset) % 1
         tangent_offset *= -1
@@ -137,7 +137,7 @@ def stitch_curves(curve_a, curve_b, stitches, stitch_points, u_offset=0,
             b_tangent = MVector(*tangent_at_parameter(curve_b, u))
             b_normal = normal_fn(b_point)
 
-        for j in xrange(stitch_points):
+        for j in range(stitch_points):
 
             t = j * stitch_blend_step
             normal = lerp(a_normal, b_normal, t)
@@ -169,7 +169,6 @@ def cross_stitch(stitches=108, stitch_points=8, u_offset=0, tangent_offset=0, no
     u_offset_b = u_offset + 1.0 / (half_stitches * 2)
     a0, a1 = MVector(*point_at_parameter(a, 0)), MVector(*point_at_parameter(a, u_offset_b))
     tangent_offset += (a0-a1).length() * 0.3
-    print tangent_offset
 
     points = stitch_curves(a, b, half_stitches, stitch_points, u_offset_a, tangent_offset, normal_fn)
     cmds.curve(point=points)
